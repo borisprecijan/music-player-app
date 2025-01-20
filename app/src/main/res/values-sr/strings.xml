@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Muzički plejer</string>
+
+    <string name="splash_title">@string/app_name</string>
+    <string name="splash_icon_desc">Logo ikonica</string>
+
+    <string name="library_title">Biblioteka</string>
+
+    <string name="now_playing_title">Sada se sluša</string>
+    <string name="now_playing_music_note_icon_desc">Music Note Icon</string>
+    <string name="now_playing_music_slider_thumb_icon_desc">Music Slider Thumb Icon</string>
+    <string name="now_playing_previous_music_icon_desc">Previous Music Icon</string>
+</resources>

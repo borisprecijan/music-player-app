@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Music Player</string>
+
+    <string name="splash_title">@string/app_name</string>
+    <string name="splash_icon_desc">Music Player Logo Icon</string>
+
+    <string name="library_title">Library</string>
+
+    <string name="now_playing_title">Now Playing</string>
+    <string name="now_playing_music_note_icon_desc">Music Note Icon</string>
+    <string name="now_playing_music_slider_thumb_icon_desc">Music Slider Thumb Icon</string>
+    <string name="now_playing_previous_music_icon_desc">Previous Music Icon</string>
+</resources>
