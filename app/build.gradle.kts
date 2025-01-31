@@ -22,10 +22,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            isMinifyEnabled = true
-            isShrinkResources = true
-        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -61,6 +57,7 @@ dependencies {
     implementation(libs.accompanist.permissions)
     //implementation(libs.androidx.hilt.lifecycle.viewmodel)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.datastore.preferences)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,4 +68,6 @@ dependencies {
 
     implementation(libs.dagger.hilt)
     kapt(libs.dagger.hilt.compiler)
+
+    implementation(libs.gson)
 }

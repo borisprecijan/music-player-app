@@ -35,7 +35,7 @@ class MusicRepository(context: Context) {
                 while (it.moveToNext()) {
                     val id = it.getInt(idColumn)
                     val name = it.getString(nameColumn)
-                    val duration = it.getLong(durationColumn)
+                    val duration = it.getInt(durationColumn)
                     val path = it.getString(pathColumn)
 
                     val music = Music(id, name, 0, duration, path)

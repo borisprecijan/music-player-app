@@ -1,5 +1,8 @@
 package com.example.musicplayer.ui.splash
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -19,17 +22,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.musicplayer.R
 import com.example.musicplayer.Route
 import com.example.musicplayer.ui.MusicPlayerViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun SplashScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerViewModel, navController: NavController) {
-    musicPlayerViewModel.setCurrentRouteTo(Route.Splash)
+    musicPlayerViewModel.setCurrentRouteTo("splash")
+    val context = LocalContext.current
     SplashScreen(
         innerPadding = innerPadding,
         onFinish = {
@@ -38,6 +48,24 @@ fun SplashScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerV
                     inclusive = true
                 }
             }
+            /*val isPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
+            } else {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+            }
+            if (isPermissionGranted) {
+                navController.navigate(Route.Library.name) {
+                    popUpTo(Route.Splash.name) {
+                        inclusive = true
+                    }
+                }
+            } else {
+                navController.navigate(Route.Permissions.name) {
+                    popUpTo(Route.Splash.name) {
+                        inclusive = true
+                    }
+                }
+            }*/
         }
     )
 }
@@ -45,10 +73,8 @@ fun SplashScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerV
 @Composable
 private fun SplashScreen(innerPadding: PaddingValues, onFinish: () -> Unit) {
     LaunchedEffect(Unit) {
-        this.launch {
-            delay(3000)
-            onFinish()
-        }
+        delay(3000)
+        onFinish()
     }
 
     BoxWithConstraints(

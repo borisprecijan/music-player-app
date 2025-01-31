@@ -1,13 +1,14 @@
 package com.example.musicplayer.data
 
 import android.annotation.SuppressLint
+import com.google.gson.annotations.SerializedName
 
 data class Music(
-    val id: Int,
-    val name: String,
-    val currentProgress: Long,
-    val duration: Long,
-    val path: String
+    @SerializedName("id") val id: Int,
+    @SerializedName("name") val name: String,
+    @SerializedName("currentProgress") val currentProgress: Int,
+    @SerializedName("duration") val duration: Int,
+    @SerializedName("path") val path: String
 )
 
 @SuppressLint("DefaultLocale")

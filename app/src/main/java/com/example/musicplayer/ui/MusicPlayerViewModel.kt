@@ -1,26 +1,50 @@
 package com.example.musicplayer.ui
 
-import android.media.MediaPlayer
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.datastore.core.DataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.musicplayer.Route
 import com.example.musicplayer.data.Music
+import com.example.musicplayer.data.MusicService
 import com.example.musicplayer.domain.GetMusicUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetMusicUseCase): ViewModel() {
+class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetMusicUseCase, private val musicPlayerUiStateDataSore: DataStore<MusicPlayerUiState>): ViewModel() {
     private var _uiState by mutableStateOf(
         MusicPlayerUiState()
     )
 
     val uiState get() = _uiState
+
+    private var musicServiceBinder: MusicService.MusicBinder? = null
+
+    init {
+        viewModelScope.launch {
+            _uiState = withContext(Dispatchers.IO) {musicPlayerUiStateDataSore.data.first()}
+            withContext(Dispatchers.IO) {
+                delay(1000)
+                musicServiceBinder!!.getService().prepare(_uiState.currentMusic!!)
+                musicServiceBinder!!.getService().setOnCompletionListener {
+                    onNextClick()
+                }
+                musicServiceBinder!!.getService().seekTo(_uiState.currentMusic!!.currentProgress)
+            }
+        }
+    }
 
     fun loadMusicFromDevice() {
         viewModelScope.launch {
@@ -36,7 +60,7 @@ class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetM
         }
     }
 
-    fun setCurrentRouteTo(newRoute: Route) {
+    fun setCurrentRouteTo(newRoute: String) {
         viewModelScope.launch {
             _uiState = _uiState.copy(
                 currentRoute = newRoute
@@ -44,29 +68,25 @@ class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetM
         }
     }
 
-    //prebaciti u servis
-    private val musicPlayer: MediaPlayer = MediaPlayer()
-
     fun onMusicClick(music: Music) {
         viewModelScope.launch {
             _uiState = _uiState.copy(
                 currentMusic = music
             )
-            musicPlayer.reset()
-            musicPlayer.setDataSource(_uiState.currentMusic!!.path)
-            musicPlayer.prepare()
-            musicPlayer.setOnCompletionListener {
+            musicServiceBinder!!.getService().prepare(_uiState.currentMusic!!)
+            musicServiceBinder!!.getService().setOnCompletionListener {
                 onNextClick()
             }
-            musicPlayer.start()
+            musicServiceBinder!!.getService().play()
+            musicServiceBinder!!.getService().showNotification(_uiState.currentMusic!!)
             _uiState = _uiState.copy(
                 isPlaying = true
             )
+            //saveState()
             updateCurrentMusicProgress()
         }
     }
 
-    //jako neefikasno, ali radi
     private fun findIndexOf(music: Music): Int {
         _uiState.musicList.forEachIndexed { i, m ->
             if (music.id == m.id)
@@ -86,13 +106,16 @@ class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetM
             _uiState = _uiState.copy(
                 currentMusic = nextMusic
             )
-            musicPlayer.reset()
-            musicPlayer.setDataSource(_uiState.currentMusic!!.path)
-            musicPlayer.prepare()
-            musicPlayer.start()
+            musicServiceBinder!!.getService().prepare(_uiState.currentMusic!!)
+            musicServiceBinder!!.getService().setOnCompletionListener {
+                onNextClick()
+            }
+            musicServiceBinder!!.getService().play()
+            musicServiceBinder!!.getService().showNotification(_uiState.currentMusic!!)
             _uiState = _uiState.copy(
                 isPlaying = true
             )
+            //saveState()
             updateCurrentMusicProgress()
         }
     }
@@ -108,26 +131,31 @@ class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetM
             _uiState = _uiState.copy(
                 currentMusic = previousMusic
             )
-            musicPlayer.reset()
-            musicPlayer.setDataSource(_uiState.currentMusic!!.path)
-            musicPlayer.prepare()
-            musicPlayer.start()
+            musicServiceBinder!!.getService().prepare(_uiState.currentMusic!!)
+            musicServiceBinder!!.getService().setOnCompletionListener {
+                onNextClick()
+            }
+            musicServiceBinder!!.getService().play()
+            musicServiceBinder!!.getService().showNotification(_uiState.currentMusic!!)
             _uiState = _uiState.copy(
                 isPlaying = true
             )
+            //saveState()
             updateCurrentMusicProgress()
         }
     }
 
     fun onPlayOrPause() {
         viewModelScope.launch {
-            if (_uiState.isPlaying) {
-                musicPlayer.pause()
+            //saveState()
+            if (musicServiceBinder!!.getService().isPlaying()) {
+                musicServiceBinder!!.getService().pause()
                 _uiState = _uiState.copy(
                     isPlaying = false
                 )
             } else {
-                musicPlayer.start()
+                musicServiceBinder!!.getService().showNotification(_uiState.currentMusic!!)
+                musicServiceBinder!!.getService().play()
                 _uiState = _uiState.copy(
                     isPlaying = true
                 )
@@ -136,14 +164,14 @@ class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetM
         }
     }
 
-    fun seekTo(newValue: Float) {
+    fun onSeekTo(newValue: Float) {
         viewModelScope.launch {
-            val seekPosition: Long = (newValue * musicPlayer.duration).toLong()
-
-            musicPlayer.seekTo(seekPosition.toInt())
+            val newPosition = (newValue * _uiState.currentMusic!!.duration).toInt()
+            musicServiceBinder!!.getService().seekTo(newPosition)
+            //saveState()
             _uiState = _uiState.copy(
                 currentMusic = _uiState.currentMusic!!.copy(
-                    currentProgress = seekPosition
+                    currentProgress = musicServiceBinder!!.getService().getCurrentPosition()
                 )
             )
         }
@@ -153,10 +181,60 @@ class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetM
         while (_uiState.isPlaying) {
             _uiState = _uiState.copy(
                 currentMusic = _uiState.currentMusic!!.copy(
-                    currentProgress = musicPlayer.currentPosition.toLong()
+                    currentProgress = musicServiceBinder!!.getService().getCurrentPosition()
                 )
             )
+            saveState()
             delay(1000)
+        }
+    }
+
+    private val serviceConnection: ServiceConnection = object: ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            musicServiceBinder = service as MusicService.MusicBinder
+            _uiState = _uiState.copy(
+                isServiceBound = true
+            )
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            musicServiceBinder = null
+            _uiState = _uiState.copy(
+                isServiceBound = false
+            )
+        }
+    }
+
+    fun bindService(context: Context) {
+        viewModelScope.launch {
+            if (!_uiState.isServiceBound) {
+                val serviceIntent = Intent(context, MusicService::class.java)
+                context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+                _uiState = _uiState.copy(
+                    isServiceBound = true
+                )
+            }
+        }
+    }
+
+    fun unbindService(context: Context) {
+        viewModelScope.launch {
+            if (_uiState.isServiceBound) {
+                context.unbindService(serviceConnection)
+                _uiState = _uiState.copy(
+                    isServiceBound = false
+                )
+            }
+        }
+    }
+
+    private fun saveState() {
+        viewModelScope.launch {
+            musicPlayerUiStateDataSore.updateData {
+                _uiState.copy(
+                    isPlaying = false
+                )
+            }
         }
     }
 }

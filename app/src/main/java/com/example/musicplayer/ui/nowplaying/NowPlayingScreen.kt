@@ -1,7 +1,5 @@
 package com.example.musicplayer.ui.nowplaying
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -40,23 +38,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.musicplayer.R
-import com.example.musicplayer.Route
 import com.example.musicplayer.data.Music
 import com.example.musicplayer.data.getCurrentProgressAsString
 import com.example.musicplayer.data.getDurationAsString
 import com.example.musicplayer.data.getProgressBarValue
 import com.example.musicplayer.ui.MusicPlayerViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NowPlayingScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerViewModel) {
-    musicPlayerViewModel.setCurrentRouteTo(Route.NowPlaying)
+    musicPlayerViewModel.setCurrentRouteTo("nowPlaying")
     NowPlayingScreen(
         innerPadding = innerPadding,
         music = musicPlayerViewModel.uiState.currentMusic!!,
         isPlaying = musicPlayerViewModel.uiState.isPlaying,
         onCurrentProgressChange = {
-            musicPlayerViewModel.seekTo(it)
+            musicPlayerViewModel.onSeekTo(it)
         },
         onPreviousClick = {
             musicPlayerViewModel.onPreviousClick()
@@ -89,7 +85,7 @@ private fun NowPlayingScreen(
             contentDescription = stringResource(R.string.now_playing_music_note_icon_desc),
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(.6f)
+                .fillMaxHeight(.55f)
         )
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -104,13 +100,12 @@ private fun NowPlayingScreen(
             onValueChange = { newValue ->
                 onCurrentProgressChange(newValue)
             },
-            /*onValueChangeFinished = {
-                onUpdate()
-            },*/
             valueRange = 0f..1f,
             thumb = {
                 Icon(
-                    modifier = Modifier.scale(0.7f).border(2.dp, Color.Red, shape = CircleShape),
+                    modifier = Modifier
+                        .scale(0.7f)
+                        .border(2.dp, Color.Red, shape = CircleShape),
                     imageVector = Icons.Filled.Circle,
                     contentDescription = stringResource(R.string.now_playing_music_slider_thumb_icon_desc),
                     tint = Color.White

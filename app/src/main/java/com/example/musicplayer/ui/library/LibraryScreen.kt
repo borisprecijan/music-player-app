@@ -1,5 +1,7 @@
 package com.example.musicplayer.ui.library
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.musicplayer.MusicPlayerLibraryItem
@@ -22,7 +25,7 @@ import com.example.musicplayer.ui.MusicPlayerViewModel
 
 @Composable
 fun LibraryScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerViewModel, navController: NavController) {
-    musicPlayerViewModel.setCurrentRouteTo(Route.Library)
+    musicPlayerViewModel.setCurrentRouteTo("library")
     LibraryScreen(
         innerPadding = innerPadding,
         musicList = musicPlayerViewModel.uiState.musicList,
@@ -45,6 +48,12 @@ private fun LibraryScreen(
     onLoadMusic: () -> Unit,
     onMusicClick: (Music) -> Unit
 ) {
+    val context = LocalContext.current as Activity
+
+    BackHandler {
+        context.moveTaskToBack(true)
+    }
+
     LaunchedEffect(Unit) {
         onLoadMusic()
     }

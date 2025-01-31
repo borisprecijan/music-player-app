@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,9 +45,22 @@ import com.example.musicplayer.data.getProgressBarValue
 import com.example.musicplayer.ui.MusicPlayerViewModel
 import com.example.musicplayer.ui.theme.MusicPlayerTheme
 
+@Composable
+fun MusicPlayerTopBar(musicPlayerViewModel: MusicPlayerViewModel) {
+    when(musicPlayerViewModel.uiState.currentRoute) {
+        "library" -> {
+            MusicPlayerTopBar(title = stringResource(R.string.library_title))
+        }
+        "nowPlaying" -> {
+            MusicPlayerTopBar(title = stringResource(R.string.now_playing_title))
+        }
+        else -> {}
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MusicPlayerTopBar(title: String) {
+private fun MusicPlayerTopBar(title: String) {
     CenterAlignedTopAppBar(
         title = {
             Text(text = title)
@@ -68,23 +82,25 @@ private fun MusicPlayerTopBarPreview() {
 
 @Composable
 fun MusicPlayerBottomBar(musicPlayerViewModel: MusicPlayerViewModel, navController: NavController) {
-    MusicPlayerBottomBar(
-        currentMusic = musicPlayerViewModel.uiState.currentMusic!!,
-        isPlaying = musicPlayerViewModel.uiState.isPlaying,
-        onClick = {
-            navController.navigate(Route.NowPlaying.name)
-            musicPlayerViewModel.setCurrentRouteTo(Route.NowPlaying)
-        },
-        onPreviousClick = {
-            musicPlayerViewModel.onPreviousClick()
-        },
-        onPlayPauseClick = {
-            musicPlayerViewModel.onPlayOrPause()
-        },
-        onNextClick = {
-            musicPlayerViewModel.onNextClick()
-        }
-    )
+    if (musicPlayerViewModel.uiState.currentMusic != null && musicPlayerViewModel.uiState.currentRoute == "library") {
+        MusicPlayerBottomBar(
+            currentMusic = musicPlayerViewModel.uiState.currentMusic!!,
+            isPlaying = musicPlayerViewModel.uiState.isPlaying,
+            onClick = {
+                navController.navigate(Route.NowPlaying.name)
+                musicPlayerViewModel.setCurrentRouteTo("nowPlaying")
+            },
+            onPreviousClick = {
+                musicPlayerViewModel.onPreviousClick()
+            },
+            onPlayPauseClick = {
+                musicPlayerViewModel.onPlayOrPause()
+            },
+            onNextClick = {
+                musicPlayerViewModel.onNextClick()
+            }
+        )
+    }
 }
 
 @Composable

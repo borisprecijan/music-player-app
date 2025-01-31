@@ -1,73 +1,78 @@
 package com.example.musicplayer
 
-import android.os.Build
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.musicplayer.data.MusicService
 import com.example.musicplayer.ui.MusicPlayerViewModel
 import com.example.musicplayer.ui.library.LibraryScreen
 import com.example.musicplayer.ui.nowplaying.NowPlayingScreen
+import com.example.musicplayer.ui.permissions.PermissionsScreen
 import com.example.musicplayer.ui.splash.SplashScreen
 import com.example.musicplayer.ui.theme.MusicPlayerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             MusicPlayerAppContent()
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun MusicPlayerAppContent(musicPlayerViewModel: MusicPlayerViewModel = hiltViewModel()) {
     val navController = rememberNavController()
+    val context = LocalContext.current
 
-    MusicPlayerTheme {
+    DisposableEffect(Unit) {
+        context.startService(Intent(context, MusicService::class.java))
+        musicPlayerViewModel.bindService(context)
+
+        onDispose {
+            musicPlayerViewModel.unbindService(context)
+        }
+    }
+
+    MusicPlayerTheme(
+        darkTheme = false
+    ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background,
             contentColor = MaterialTheme.colorScheme.onBackground,
             topBar = {
-                when(musicPlayerViewModel.uiState.currentRoute) {
-                    Route.Library -> {
-                        MusicPlayerTopBar(title = stringResource(R.string.library_title))
-                    }
-                    Route.NowPlaying -> {
-                        MusicPlayerTopBar(title = stringResource(R.string.now_playing_title))
-                    }
-                    else -> {}
-                }
+                MusicPlayerTopBar(musicPlayerViewModel = musicPlayerViewModel)
             }, bottomBar = {
-                if (musicPlayerViewModel.uiState.currentMusic != null && musicPlayerViewModel.uiState.currentRoute == Route.Library) {
-                    MusicPlayerBottomBar(musicPlayerViewModel = musicPlayerViewModel, navController = navController)
-                }
+                MusicPlayerBottomBar(musicPlayerViewModel = musicPlayerViewModel, navController = navController)
             }
         ) { innerPadding ->
-            MusicPlayerNavigation(navController, musicPlayerViewModel, innerPadding)
+            MusicPlayerNavigation(
+                navController = navController,
+                musicPlayerViewModel = musicPlayerViewModel,
+                innerPadding = innerPadding
+            )
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun MusicPlayerNavigation(
     navController: NavHostController,
@@ -93,6 +98,13 @@ private fun MusicPlayerNavigation(
             NowPlayingScreen(
                 innerPadding = innerPadding,
                 musicPlayerViewModel = musicPlayerViewModel
+            )
+        }
+        composable(route = Route.Permissions.name) {
+            PermissionsScreen(
+                innerPadding = innerPadding,
+                musicPlayerViewModel = musicPlayerViewModel,
+                navController = navController
             )
         }
     }
