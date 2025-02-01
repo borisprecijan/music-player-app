@@ -8,10 +8,16 @@ import android.os.Binder
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.musicplayer.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 class MusicService : Service() {
     private var musicPlayer: MediaPlayer = MediaPlayer()
     private val binder: MusicBinder = MusicBinder()
+    private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())//+SupervisorJob()????
 
     inner class MusicBinder: Binder() {
         fun getService(): MusicService = this@MusicService
@@ -47,33 +53,41 @@ class MusicService : Service() {
         return notification
     }
 
-    fun getCurrentPosition(): Int {
-        return musicPlayer.currentPosition
-    }
+    fun getCurrentPosition(): Int = musicPlayer.currentPosition
 
     fun play() {
-        musicPlayer.start()
+        //serviceScope.launch {
+            musicPlayer.start()
+        //}
     }
 
     fun isPlaying(): Boolean = musicPlayer.isPlaying
 
     fun prepare(music: Music) {
-        musicPlayer.reset()
-        musicPlayer.setDataSource(music.path)
-        musicPlayer.prepare()
+        //serviceScope.launch {
+            musicPlayer.reset()
+            musicPlayer.setDataSource(music.path)
+            musicPlayer.prepare()
+        //}
     }
 
     fun setOnCompletionListener(onComplete: () -> Unit) {
-        musicPlayer.setOnCompletionListener {
-            onComplete()
-        }
+        //serviceScope.launch {
+            musicPlayer.setOnCompletionListener {
+                onComplete()
+            }
+        //}
     }
 
     fun pause() {
-        musicPlayer.pause()
+        //serviceScope.launch {
+            musicPlayer.pause()
+        //}
     }
 
     fun seekTo(position: Int) {
-        musicPlayer.seekTo(position)
+        //serviceScope.launch {
+            musicPlayer.seekTo(position)
+        //}
     }
 }

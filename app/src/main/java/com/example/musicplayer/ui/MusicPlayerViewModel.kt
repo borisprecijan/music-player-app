@@ -16,6 +16,7 @@ import com.example.musicplayer.data.MusicService
 import com.example.musicplayer.domain.GetMusicUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -34,7 +35,11 @@ class MusicPlayerViewModel @Inject constructor(private val getMusicUseCase: GetM
 
     init {
         viewModelScope.launch {
-            _uiState = withContext(Dispatchers.IO) {musicPlayerUiStateDataSore.data.first()}
+            val test = async(Dispatchers.IO) {
+                musicPlayerUiStateDataSore.data.first()
+            }
+            _uiState = test.await()
+            //_uiState = withContext(Dispatchers.IO) { musicPlayerUiStateDataSore.data.first() }
             withContext(Dispatchers.IO) {
                 delay(1000)
                 musicServiceBinder!!.getService().prepare(_uiState.currentMusic!!)
