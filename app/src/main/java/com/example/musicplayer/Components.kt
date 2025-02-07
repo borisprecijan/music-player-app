@@ -1,6 +1,6 @@
 package com.example.musicplayer
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.MusicNote
@@ -26,14 +25,15 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,10 +48,10 @@ import com.example.musicplayer.ui.theme.MusicPlayerTheme
 @Composable
 fun MusicPlayerTopBar(musicPlayerViewModel: MusicPlayerViewModel) {
     when(musicPlayerViewModel.uiState.currentRoute) {
-        "library" -> {
+        Route.Library -> {
             MusicPlayerTopBar(title = stringResource(R.string.library_title))
         }
-        "nowPlaying" -> {
+        Route.NowPlaying -> {
             MusicPlayerTopBar(title = stringResource(R.string.now_playing_title))
         }
         else -> {}
@@ -82,13 +82,13 @@ private fun MusicPlayerTopBarPreview() {
 
 @Composable
 fun MusicPlayerBottomBar(musicPlayerViewModel: MusicPlayerViewModel, navController: NavController) {
-    if (musicPlayerViewModel.uiState.currentMusic != null && musicPlayerViewModel.uiState.currentRoute == "library") {
+    if (musicPlayerViewModel.uiState.currentMusic != null && musicPlayerViewModel.uiState.currentRoute == Route.Library) {
         MusicPlayerBottomBar(
             currentMusic = musicPlayerViewModel.uiState.currentMusic!!,
             isPlaying = musicPlayerViewModel.uiState.isPlaying,
             onClick = {
                 navController.navigate(Route.NowPlaying.name)
-                musicPlayerViewModel.setCurrentRouteTo("nowPlaying")
+                musicPlayerViewModel.setCurrentRouteTo(Route.NowPlaying)
             },
             onPreviousClick = {
                 musicPlayerViewModel.onPreviousClick()
@@ -136,8 +136,8 @@ private fun MusicPlayerBottomBar(
                     progress = {
                         currentMusic!!.getProgressBarValue()
                     },
-                    color = MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.onSecondary,
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -156,48 +156,60 @@ private fun MusicPlayerBottomBar(
                         .padding(all = 4.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    Icon(
-                        modifier = Modifier
-                            .fillMaxHeight()
+                    OutlinedIconButton (
+                        modifier = Modifier.fillMaxHeight()
                             .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                            .padding(all = 4.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            .clickable {
-                                onPreviousClick()
-                            },
-                        imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = "Previous",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Icon(
-                        modifier = Modifier
-                            .fillMaxHeight()
+                            .padding(all = 2.dp),
+                        onClick = {
+                            onPreviousClick()
+                        },
+                        colors = IconButtonDefaults.outlinedIconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            modifier = Modifier.fillMaxSize(),
+                            imageVector = Icons.Default.SkipPrevious,
+                            contentDescription = stringResource(R.string.now_playing_previous_music_icon_desc)
+                        )
+                    }
+                    OutlinedIconButton (
+                        modifier = Modifier.fillMaxHeight()
                             .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                            .padding(all = 4.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            .clickable {
-                                onPlayPauseClick()
-                            },
-                        imageVector = if (!isPlaying) Icons.Default.PlayArrow else Icons.Default.Pause,
-                        contentDescription = "Play",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Icon(
-                        modifier = Modifier
-                            .fillMaxHeight()
+                            .padding(all = 2.dp),
+                        onClick = {
+                            onPlayPauseClick()
+                        },
+                        colors = IconButtonDefaults.outlinedIconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            modifier = Modifier.fillMaxSize(),
+                            imageVector = if (!isPlaying) Icons.Default.PlayArrow else Icons.Default.Pause,
+                            contentDescription = "Play Or Pause Music Icon"
+                        )
+                    }
+                    OutlinedIconButton (
+                        modifier = Modifier.fillMaxHeight()
                             .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                            .padding(all = 4.dp)
-                            .clip(CircleShape)
-                            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
-                            .clickable {
-                                onNextClick()
-                            },
-                        imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Next",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                            .padding(all = 2.dp),
+                        onClick = {
+                            onNextClick()
+                        },
+                        colors = IconButtonDefaults.outlinedIconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                    ) {
+                        Icon(
+                            modifier = Modifier.fillMaxSize(),
+                            imageVector = Icons.Default.SkipNext,
+                            contentDescription = "Next Music Icon"
+                        )
+                    }
                 }
             }
         }

@@ -6,18 +6,14 @@ import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Binder
 import android.os.IBinder
+import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.example.musicplayer.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 
 class MusicService : Service() {
     private var musicPlayer: MediaPlayer = MediaPlayer()
     private val binder: MusicBinder = MusicBinder()
-    private val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())//+SupervisorJob()????
 
     inner class MusicBinder: Binder() {
         fun getService(): MusicService = this@MusicService
@@ -43,6 +39,11 @@ class MusicService : Service() {
 
     private fun createNotification(music: Music): Notification {
         val channelId = "channelId"
+        val channel = NotificationChannelCompat.Builder(channelId, NotificationManagerCompat.IMPORTANCE_LOW)
+            .setName("Kanal za obaveštenja - Muzički plejer")
+            .setDescription("Kanal za obaveštenja koja dolaze iz servisa za reprodukciju muzike")
+            .build()
+        NotificationManagerCompat.from(this).createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.music_note_icon)
@@ -56,38 +57,43 @@ class MusicService : Service() {
     fun getCurrentPosition(): Int = musicPlayer.currentPosition
 
     fun play() {
-        //serviceScope.launch {
-            musicPlayer.start()
-        //}
+        musicPlayer.start()
     }
 
     fun isPlaying(): Boolean = musicPlayer.isPlaying
 
-    fun prepare(music: Music) {
-        //serviceScope.launch {
-            musicPlayer.reset()
-            musicPlayer.setDataSource(music.path)
-            musicPlayer.prepare()
-        //}
+    fun prepareAndPlay(music: Music) {
+        musicPlayer.reset()
+        musicPlayer.setDataSource(music.path)
+        musicPlayer.setOnPreparedListener {
+            it.start()
+        }
+        musicPlayer.prepareAsync()
+    }
+
+    fun init(music: Music, onComplete: () -> Unit) {
+        musicPlayer.reset()
+        musicPlayer.setDataSource(music.path)
+        musicPlayer.setOnPreparedListener {
+            it.setOnCompletionListener {
+                onComplete()
+            }
+            it.seekTo(music.currentProgress)
+        }
+        musicPlayer.prepareAsync()
     }
 
     fun setOnCompletionListener(onComplete: () -> Unit) {
-        //serviceScope.launch {
-            musicPlayer.setOnCompletionListener {
-                onComplete()
-            }
-        //}
+        musicPlayer.setOnCompletionListener {
+            onComplete()
+        }
     }
 
     fun pause() {
-        //serviceScope.launch {
-            musicPlayer.pause()
-        //}
+        musicPlayer.pause()
     }
 
     fun seekTo(position: Int) {
-        //serviceScope.launch {
-            musicPlayer.seekTo(position)
-        //}
+        musicPlayer.seekTo(position)
     }
 }

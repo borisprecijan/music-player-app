@@ -78,7 +78,7 @@ fun PermissionsScreen(
     musicPlayerViewModel: MusicPlayerViewModel,
     navController: NavController
 ) {
-    musicPlayerViewModel.setCurrentRouteTo("permissions")
+    musicPlayerViewModel.setCurrentRouteTo(Route.Permissions)
     PermissionsScreen(
         onAllowClick = {
             if (it) {

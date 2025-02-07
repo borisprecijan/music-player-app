@@ -32,12 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.musicplayer.R
+import com.example.musicplayer.Route
 import com.example.musicplayer.data.Music
 import com.example.musicplayer.data.getCurrentProgressAsString
 import com.example.musicplayer.data.getDurationAsString
@@ -46,7 +46,7 @@ import com.example.musicplayer.ui.MusicPlayerViewModel
 
 @Composable
 fun NowPlayingScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerViewModel) {
-    musicPlayerViewModel.setCurrentRouteTo("nowPlaying")
+    musicPlayerViewModel.setCurrentRouteTo(Route.NowPlaying)
     NowPlayingScreen(
         innerPadding = innerPadding,
         music = musicPlayerViewModel.uiState.currentMusic!!,
@@ -88,7 +88,8 @@ private fun NowPlayingScreen(
                 .fillMaxHeight(.55f)
         )
         Text(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
+                .padding(horizontal = 8.dp),
             textAlign = TextAlign.Center,
             text = music.name,
             maxLines = 1,
@@ -105,10 +106,10 @@ private fun NowPlayingScreen(
                 Icon(
                     modifier = Modifier
                         .scale(0.7f)
-                        .border(2.dp, Color.Red, shape = CircleShape),
+                        .border(2.dp, MaterialTheme.colorScheme.onSurface, shape = CircleShape),
                     imageVector = Icons.Filled.Circle,
                     contentDescription = stringResource(R.string.now_playing_music_slider_thumb_icon_desc),
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.surface
                 )
             },
             track = {
@@ -116,7 +117,7 @@ private fun NowPlayingScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(4.dp),
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     content = {}
                 )
             }
@@ -127,8 +128,12 @@ private fun NowPlayingScreen(
                 .padding(horizontal = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = music.getCurrentProgressAsString())
-            Text(text = music.getDurationAsString())
+            Text(
+                text = music.getCurrentProgressAsString()
+            )
+            Text(
+                text = music.getDurationAsString()
+            )
         }
         Row(
             modifier = Modifier.fillMaxSize(),

@@ -1,6 +1,5 @@
 package com.example.musicplayer
 
-import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,7 +16,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.musicplayer.data.MusicService
 import com.example.musicplayer.ui.MusicPlayerViewModel
 import com.example.musicplayer.ui.library.LibraryScreen
 import com.example.musicplayer.ui.nowplaying.NowPlayingScreen
@@ -43,7 +41,10 @@ fun MusicPlayerAppContent(musicPlayerViewModel: MusicPlayerViewModel = hiltViewM
     val context = LocalContext.current
 
     DisposableEffect(Unit) {
-        context.startService(Intent(context, MusicService::class.java))
+        if (!musicPlayerViewModel.started) {
+            musicPlayerViewModel.startService(context)
+            musicPlayerViewModel.started = true
+        }
         musicPlayerViewModel.bindService(context)
 
         onDispose {

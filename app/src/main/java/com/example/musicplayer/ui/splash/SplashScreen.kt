@@ -38,8 +38,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun SplashScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerViewModel, navController: NavController) {
-    musicPlayerViewModel.setCurrentRouteTo("splash")
-    val context = LocalContext.current
+    musicPlayerViewModel.setCurrentRouteTo(Route.Splash)
     SplashScreen(
         innerPadding = innerPadding,
         onFinish = {
@@ -73,7 +72,6 @@ fun SplashScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerV
 @Composable
 private fun SplashScreen(innerPadding: PaddingValues, onFinish: () -> Unit) {
     LaunchedEffect(Unit) {
-        delay(3000)
         onFinish()
     }
 

@@ -25,7 +25,7 @@ import com.example.musicplayer.ui.MusicPlayerViewModel
 
 @Composable
 fun LibraryScreen(innerPadding: PaddingValues, musicPlayerViewModel: MusicPlayerViewModel, navController: NavController) {
-    musicPlayerViewModel.setCurrentRouteTo("library")
+    musicPlayerViewModel.setCurrentRouteTo(Route.Library)
     LibraryScreen(
         innerPadding = innerPadding,
         musicList = musicPlayerViewModel.uiState.musicList,
